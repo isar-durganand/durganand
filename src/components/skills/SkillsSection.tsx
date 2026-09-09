@@ -72,7 +72,7 @@ export function SkillsSection() {
     <section
       id="skills"
       ref={sectionRef}
-      className="py-32 px-6 scroll-mt-24 relative"
+      className="py-20 sm:py-32 px-4 sm:px-6 scroll-mt-24 relative"
     >
       <div className="max-w-5xl mx-auto">
         {/* Section Header */}
@@ -80,21 +80,21 @@ export function SkillsSection() {
           initial={{ opacity: 0, y: 25 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ type: 'spring', stiffness: 240, damping: 28 }}
-          className="mb-12"
+          className="mb-8 sm:mb-12"
         >
           <div className="flex items-center gap-2 mb-3">
             <span className="w-2 h-2 rounded-full bg-accent" />
             <span className="text-xs font-mono text-accent uppercase tracking-widest">
-              Technical Stack & Competencies
+              Technical Stack &amp; Competencies
             </span>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
             <div>
               <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl tracking-display text-carbon-950 dark:text-carbon-50">
                 Tools I ship with.
               </h2>
-              <p className="mt-3 text-sm sm:text-base text-carbon-600 dark:text-carbon-400 font-body max-w-2xl leading-relaxed">
+              <p className="mt-2 sm:mt-3 text-xs sm:text-sm md:text-base text-carbon-600 dark:text-carbon-400 font-body max-w-2xl leading-relaxed">
                 Core programming languages, modern web engineering primitives, developer tooling, and active algorithmic discipline in C++.
               </p>
             </div>
@@ -106,7 +106,7 @@ export function SkillsSection() {
           initial={{ opacity: 0, y: 15 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ type: 'spring', stiffness: 280, damping: 28, delay: 0.08 }}
-          className="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar"
+          className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-3 mb-8 sm:mb-10 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
         >
           {filterTabs.map((tab) => {
             const isActive = activeTab === tab.id;
@@ -168,7 +168,7 @@ export function SkillsSection() {
                       delay: catIndex * 0.08,
                     }}
                     whileHover={{ y: -4 }}
-                    className={`relative flex flex-col justify-between rounded-2xl p-7 transition-all duration-300 border ${
+                    className={`relative flex flex-col justify-between rounded-2xl p-5 sm:p-7 transition-all duration-300 border ${
                       isHoning
                         ? 'bg-carbon-100/50 dark:bg-carbon-900/60 border-accent/40 shadow-sm'
                         : 'bg-carbon-100/50 dark:bg-carbon-900/60 border-carbon-200 dark:border-carbon-800 hover:border-carbon-350 dark:hover:border-carbon-700'
@@ -236,7 +236,7 @@ export function SkillsSection() {
                               }}
                               whileHover={{ y: -2, scale: 1.02 }}
                               whileTap={{ scale: 0.96 }}
-                              className={`group/chip relative px-3.5 py-2 text-xs font-mono rounded-lg border transition-all duration-150 cursor-pointer flex items-center gap-2 ${
+                              className={`group/chip relative px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-mono rounded-lg border transition-all duration-150 cursor-pointer flex items-center gap-2 ${
                                 isSelected
                                   ? 'bg-accent text-white border-accent shadow-sm'
                                   : isHoning
@@ -374,7 +374,7 @@ export function SkillsSection() {
                   whileHover={{ y: -4 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setActiveCredential(cred)}
-                  className="group flex flex-col justify-between p-7 rounded-2xl bg-carbon-100/50 dark:bg-carbon-900/60 border border-carbon-200 dark:border-carbon-800 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-300 cursor-pointer shadow-sm"
+                  className="group flex flex-col justify-between p-5 sm:p-7 rounded-2xl bg-carbon-100/50 dark:bg-carbon-900/60 border border-carbon-200 dark:border-carbon-800 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-300 cursor-pointer shadow-sm"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-4">

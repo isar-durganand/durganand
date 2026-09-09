@@ -32,30 +32,30 @@ export default function App() {
         onToggleTheme={toggleTheme}
       />
 
-      <main>
+      <main className="overflow-x-hidden">
         <Hero />
 
         {/* Subtle section divider */}
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="border-t border-carbon-150 dark:border-carbon-700" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="border-t border-carbon-150 dark:border-carbon-800" />
         </div>
 
         <ProjectsSection />
 
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="border-t border-carbon-150 dark:border-carbon-700" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="border-t border-carbon-150 dark:border-carbon-800" />
         </div>
 
         <AboutSection />
 
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="border-t border-carbon-150 dark:border-carbon-700" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="border-t border-carbon-150 dark:border-carbon-800" />
         </div>
 
         <SkillsSection />
 
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="border-t border-carbon-150 dark:border-carbon-700" />
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="border-t border-carbon-150 dark:border-carbon-800" />
         </div>
 
         <ContactSection />
