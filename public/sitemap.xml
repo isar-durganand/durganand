@@ -2,37 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://durganand.vercel.app/</loc>
-    <lastmod>2026-09-09</lastmod>
+    <loc>https://durganand-ishar.vercel.app/</loc>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://durganand.vercel.app/profile.webp</image:loc>
+      <image:loc>https://durganand-ishar.vercel.app/profile.webp</image:loc>
       <image:title>Durganand Ishar</image:title>
       <image:caption>Durganand Ishar — Full-Stack Developer &amp; Software Engineer</image:caption>
     </image:image>
   </url>
   <url>
-    <loc>https://durganand.vercel.app/#work</loc>
-    <lastmod>2026-09-09</lastmod>
+    <loc>https://durganand-ishar.vercel.app/#work</loc>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://durganand.vercel.app/#about</loc>
-    <lastmod>2026-09-09</lastmod>
+    <loc>https://durganand-ishar.vercel.app/#about</loc>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://durganand.vercel.app/#skills</loc>
-    <lastmod>2026-09-09</lastmod>
+    <loc>https://durganand-ishar.vercel.app/#skills</loc>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://durganand.vercel.app/#contact</loc>
-    <lastmod>2026-09-09</lastmod>
+    <loc>https://durganand-ishar.vercel.app/#contact</loc>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

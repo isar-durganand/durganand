@@ -6,7 +6,7 @@ User-agent: Googlebot
 Allow: /
 
 # Host
-Host: https://durganand.vercel.app
+Host: https://durganand-ishar.vercel.app
 
 # Sitemap
-Sitemap: https://durganand.vercel.app/sitemap.xml
+Sitemap: https://durganand-ishar.vercel.app/sitemap.xml
