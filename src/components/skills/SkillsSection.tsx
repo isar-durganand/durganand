@@ -9,27 +9,54 @@ import {
   CheckCircle2,
   X,
   ArrowUpRight,
-  Check,
   Sparkles,
+  Search,
+  ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 import { skillCategories, credentials } from '../../data/skills';
 import type { SkillItem, Credential } from '../../types/portfolio';
+import { sound } from '../../utils/audio';
+import { SkillLogo } from './SkillLogo';
 
 type FilterTab = 'all' | 'languages' | 'web' | 'tools' | 'honing' | 'credentials';
+
+const SKILL_LABELS: Record<string, string> = {
+  'C': 'Systems & Memory',
+  'C++': 'STL & Competitive DSA',
+  'Python': 'Data & Automation',
+  'JavaScript': 'ES6+ & Async Web',
+  'TypeScript': 'Strict Typing & Generics',
+  'React': 'Hooks & Modern UI',
+  'HTML5': 'Semantic Architecture',
+  'CSS3': 'Layouts & Animations',
+  'Tailwind CSS': 'Utility Tokens',
+  'Git': 'Branching & Commits',
+  'GitHub': 'Collaboration & CI',
+  'Vercel': 'Edge Deployment',
+  'Firebase': 'Auth & Cloud DB',
+  'Vite': 'Fast Bundling & HMR',
+  'Data Structures & Algorithms': 'Core Problem Solving in C++',
+  'C++ STL': 'Vectors, Maps, Heaps, Sets',
+  'Arrays & Hashing': 'Two Pointers & Sliding Window',
+  'Trees & Graphs': 'BFS, DFS & Traversals',
+  'Dynamic Programming': 'Memoization & State Optimization',
+};
 
 export function SkillsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '0px 0px -80px 0px' });
 
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedSkill, setSelectedSkill] = useState<SkillItem | null>(null);
   const [activeCredential, setActiveCredential] = useState<Credential | null>(null);
 
-  // Close modal on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setActiveCredential(null);
+        setSelectedSkill(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -37,36 +64,55 @@ export function SkillsSection() {
   }, []);
 
   const filterTabs: { id: FilterTab; label: string }[] = [
-    { id: 'all', label: 'All Disciplines' },
+    { id: 'all', label: 'All Skills' },
     { id: 'languages', label: 'Languages' },
     { id: 'web', label: 'Web Technologies' },
     { id: 'tools', label: 'Tools & Platforms' },
-    { id: 'honing', label: 'Algorithms & Focus' },
-    { id: 'credentials', label: 'Certifications' },
+    { id: 'honing', label: 'C++ & Algorithms' },
+    { id: 'credentials', label: 'Google AI Certifications' },
   ];
-
-  const visibleCategories = skillCategories.filter((cat) => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'credentials') return false;
-    return cat.id === activeTab;
-  });
-
-  const showCredentials = activeTab === 'all' || activeTab === 'credentials';
 
   const getCategoryIcon = (iconName: string) => {
     switch (iconName) {
       case 'code':
-        return <Code2 size={18} className="text-carbon-700 dark:text-carbon-300" />;
+        return <Code2 size={18} className="text-[#00F0FF]" />;
       case 'globe':
-        return <Globe size={18} className="text-carbon-700 dark:text-carbon-300" />;
+        return <Globe size={18} className="text-[#00FF9D]" />;
       case 'terminal':
-        return <Terminal size={18} className="text-carbon-700 dark:text-carbon-300" />;
+        return <Terminal size={18} className="text-amber-400" />;
       case 'zap':
-        return <Zap size={18} className="text-accent" />;
+        return <Zap size={18} className="text-[#FF5500]" />;
       default:
-        return <Code2 size={18} />;
+        return <Code2 size={18} className="text-[#00F0FF]" />;
     }
   };
+
+  const filteredCategories = skillCategories
+    .map((cat) => {
+      if (activeTab !== 'all' && activeTab !== cat.id) return null;
+
+      const filteredItems = cat.items.filter((item) => {
+        if (!searchQuery) return true;
+        const q = searchQuery.toLowerCase().trim();
+        return (
+          item.name.toLowerCase().includes(q) ||
+          item.context.toLowerCase().includes(q) ||
+          (item.project && item.project.toLowerCase().includes(q))
+        );
+      });
+
+      if (filteredItems.length === 0 && searchQuery) return null;
+
+      return {
+        ...cat,
+        items: filteredItems,
+      };
+    })
+    .filter(Boolean) as typeof skillCategories;
+
+  const showCredentials =
+    (activeTab === 'all' || activeTab === 'credentials') &&
+    (!searchQuery || 'google ai machine learning fundamentals cert'.includes(searchQuery.toLowerCase()));
 
   return (
     <section
@@ -74,7 +120,7 @@ export function SkillsSection() {
       ref={sectionRef}
       className="py-20 sm:py-32 px-4 sm:px-6 scroll-mt-24 relative"
     >
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 25 }}
@@ -82,458 +128,333 @@ export function SkillsSection() {
           transition={{ type: 'spring', stiffness: 240, damping: 28 }}
           className="mb-8 sm:mb-12"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-2 h-2 rounded-full bg-accent" />
-            <span className="text-xs font-mono text-accent uppercase tracking-widest">
-              Technical Stack &amp; Competencies
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]" />
+            <span className="text-xs font-mono text-[#00F0FF] uppercase tracking-widest font-bold">
+              // 03 &middot; Skills &amp; Capabilities
             </span>
           </div>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
             <div>
-              <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl tracking-display text-carbon-950 dark:text-carbon-50">
-                Tools I ship with.
+              <h2 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight-display text-white">
+                Technical Stack.
               </h2>
-              <p className="mt-2 sm:mt-3 text-xs sm:text-sm md:text-base text-carbon-600 dark:text-carbon-400 font-body max-w-2xl leading-relaxed">
-                Core programming languages, modern web engineering primitives, developer tooling, and active algorithmic discipline in C++.
+              <p className="mt-2 text-xs sm:text-sm md:text-base text-slate-300 font-body max-w-2xl leading-relaxed">
+                Official tools, languages, and technologies with verified brand logos and engineering contexts.
               </p>
+            </div>
+
+            {/* Real-time Search Input */}
+            <div className="relative w-full md:w-80">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#00F0FF]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  sound.playTelemetry(2200);
+                }}
+                placeholder="Search skills (e.g. C++, React, Python)..."
+                className="w-full pl-9 pr-4 py-2.5 rounded bg-[#03060E] border border-[#00F0FF]/30 text-xs font-mono text-[#00F0FF] placeholder-slate-600 focus:outline-none focus:border-[#00F0FF] focus:shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
 
-        {/* Filter Navigation Tabs */}
+        {/* Filter Navigation Tabs (Mobile touch-friendly horizontal scroll) */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ type: 'spring', stiffness: 280, damping: 28, delay: 0.08 }}
-          className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-3 mb-8 sm:mb-10 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="flex items-center gap-2 overflow-x-auto pb-3 mb-8 sm:mb-10 no-scrollbar touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0"
         >
           {filterTabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <motion.button
+              <button
                 key={tab.id}
                 onClick={() => {
+                  sound.playTelemetry(1900);
                   setActiveTab(tab.id);
-                  if (selectedSkill && tab.id !== 'all') {
-                    const currentCat = skillCategories.find((c) => c.id === tab.id);
-                    if (!currentCat?.items.some((item) => item.name === selectedSkill.name)) {
-                      setSelectedSkill(null);
-                    }
-                  }
                 }}
-                whileTap={{ scale: 0.96 }}
-                className={`relative px-4 py-2 rounded-xl text-xs font-mono whitespace-nowrap transition-colors duration-150 cursor-pointer ${
+                className={`relative px-3.5 sm:px-4 py-2 rounded-xl font-mono text-xs whitespace-nowrap transition-all duration-150 cursor-pointer flex-shrink-0 ${
                   isActive
-                    ? 'text-carbon-950 dark:text-carbon-50 font-semibold'
-                    : 'text-carbon-500 dark:text-carbon-400 hover:text-carbon-800 dark:hover:text-carbon-200'
+                    ? 'bg-[#00F0FF]/20 text-[#00F0FF] font-bold border border-[#00F0FF]/50 shadow-[0_0_12px_rgba(0,240,255,0.25)]'
+                    : 'bg-[#050A16] border border-[#00F0FF]/15 text-slate-400 hover:text-white hover:border-[#00F0FF]/30'
                 }`}
               >
-                {isActive && (
-                  <motion.div
-                    layoutId="active-skills-filter-pill"
-                    className="absolute inset-0 rounded-xl bg-carbon-200 dark:bg-carbon-800 border border-carbon-300 dark:border-carbon-700 -z-10 shadow-sm"
-                    transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-                  />
-                )}
                 {tab.label}
-              </motion.button>
+              </button>
             );
           })}
         </motion.div>
 
-        {/* Categories Grid (2x2 Balanced Layout with Generous Gaps) */}
-        <AnimatePresence mode="wait">
-          {visibleCategories.length > 0 && (
+        {/* Skills Categories Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 mb-12 sm:mb-14">
+          {filteredCategories.map((cat) => (
             <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 15 }}
+              key={cat.id}
+              layout
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-7 mb-8"
+              className="cyber-card p-5 sm:p-7 flex flex-col justify-between"
             >
-              {visibleCategories.map((category, catIndex) => {
-                const isHoning = category.accent;
+              <div className="hud-bracket-tl" />
+              <div className="hud-bracket-tr" />
+              <div className="hud-bracket-bl" />
+              <div className="hud-bracket-br" />
 
-                return (
-                  <motion.div
-                    key={category.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 300,
-                      damping: 28,
-                      delay: catIndex * 0.08,
-                    }}
-                    whileHover={{ y: -4 }}
-                    className={`relative flex flex-col justify-between rounded-2xl p-5 sm:p-7 transition-all duration-300 border ${
-                      isHoning
-                        ? 'bg-carbon-100/50 dark:bg-carbon-900/60 border-accent/40 shadow-sm'
-                        : 'bg-carbon-100/50 dark:bg-carbon-900/60 border-carbon-200 dark:border-carbon-800 hover:border-carbon-350 dark:hover:border-carbon-700'
-                    }`}
-                  >
+              <div>
+                {/* Category Header */}
+                <div className="flex items-center justify-between mb-4 sm:mb-5 pb-3 border-b border-[#00F0FF]/20">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded bg-[#03060E] border border-[#00F0FF]/30 flex-shrink-0">
+                      {getCategoryIcon(cat.iconName)}
+                    </div>
                     <div>
-                      {/* Card Header */}
-                      <div className="flex items-center justify-between gap-4 mb-2">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center border ${
-                              isHoning
-                                ? 'bg-accent/10 border-accent/30'
-                                : 'bg-carbon-200 dark:bg-carbon-800 border-carbon-300 dark:border-carbon-700'
-                            }`}
-                          >
-                            {getCategoryIcon(category.iconName)}
-                          </div>
-                          <div>
-                            <h3 className="font-display font-semibold text-lg text-carbon-950 dark:text-carbon-50 leading-tight">
-                              {category.label}
-                            </h3>
-                          </div>
-                        </div>
-
-                        {/* Top Right Status Badge */}
-                        {isHoning ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full bg-accent/10 border border-accent/30 text-accent font-medium">
-                            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                            Active Focus
-                          </span>
-                        ) : (
-                          <span className="text-xs font-mono px-3 py-1 rounded-full bg-carbon-200 dark:bg-carbon-800 border border-carbon-250 dark:border-carbon-700 text-carbon-500 dark:text-carbon-400">
-                            {category.items.length} tools
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Card Description */}
-                      <p className="text-xs font-body text-carbon-500 dark:text-carbon-400 leading-relaxed mb-6 mt-2">
-                        {category.description}
+                      <h3 className="font-mono font-bold text-sm sm:text-base text-white tracking-wider">
+                        // {cat.label}
+                      </h3>
+                      <p className="text-[11px] font-body text-slate-400">
+                        {cat.description}
                       </p>
-
-                      {/* Hairline Divider */}
-                      <div className="border-t border-carbon-200 dark:border-carbon-800 mb-6" />
-
-                      {/* Skill Chips */}
-                      <div className="flex flex-wrap gap-2.5">
-                        {category.items.map((skill, skillIdx) => {
-                          const isSelected = selectedSkill?.name === skill.name;
-
-                          return (
-                            <motion.button
-                              key={skill.name}
-                              onClick={() => {
-                                setSelectedSkill(isSelected ? null : skill);
-                              }}
-                              initial={{ opacity: 0, scale: 0.9, y: 6 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              transition={{
-                                type: 'spring',
-                                stiffness: 400,
-                                damping: 24,
-                                delay: catIndex * 0.05 + skillIdx * 0.03,
-                              }}
-                              whileHover={{ y: -2, scale: 1.02 }}
-                              whileTap={{ scale: 0.96 }}
-                              className={`group/chip relative px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-mono rounded-lg border transition-all duration-150 cursor-pointer flex items-center gap-2 ${
-                                isSelected
-                                  ? 'bg-accent text-white border-accent shadow-sm'
-                                  : isHoning
-                                  ? 'bg-carbon-50 dark:bg-carbon-850 border-accent/30 text-carbon-800 dark:text-carbon-100 hover:border-accent hover:text-accent'
-                                  : 'bg-carbon-50 dark:bg-carbon-850 border-carbon-200 dark:border-carbon-750 text-carbon-700 dark:text-carbon-200 hover:border-carbon-400 dark:hover:border-carbon-500 hover:text-carbon-950 dark:hover:text-carbon-50'
-                              }`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                                  isSelected
-                                    ? 'bg-white'
-                                    : isHoning
-                                    ? 'bg-accent'
-                                    : 'bg-carbon-400 dark:bg-carbon-500 group-hover/chip:bg-accent'
-                                }`}
-                              />
-                              <span>{skill.name}</span>
-                            </motion.button>
-                          );
-                        })}
-                      </div>
                     </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Interactive Skill Inspector Panel */}
-        <AnimatePresence>
-          {selectedSkill && (
-            <motion.div
-              initial={{ opacity: 0, y: 15, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
-              transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-              className="mb-10 p-6 sm:p-7 rounded-2xl bg-carbon-100 dark:bg-carbon-900 border border-accent/40 shadow-sm relative overflow-hidden"
-            >
-              {/* Left hairline accent bar */}
-              <div className="absolute top-0 left-0 bottom-0 w-1 bg-accent" />
-
-              <div className="flex items-start justify-between gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={13} className="text-accent" />
-                    <span className="text-xs font-mono text-accent uppercase tracking-widest font-semibold">
-                      Skill Context & Application
-                    </span>
                   </div>
-
-                  <h4 className="font-display font-bold text-2xl text-carbon-950 dark:text-carbon-50">
-                    {selectedSkill.name}
-                  </h4>
-
-                  <p className="text-sm font-body text-carbon-700 dark:text-carbon-300 max-w-2xl leading-relaxed">
-                    {selectedSkill.context}
-                  </p>
-
-                  {/* If linked to real project */}
-                  {selectedSkill.project && selectedSkill.projectUrl && (
-                    <div className="pt-2 flex items-center gap-3">
-                      <span className="text-xs font-mono text-carbon-500 dark:text-carbon-400">
-                        Shipped in:
-                      </span>
-                      <motion.a
-                        href={selectedSkill.projectUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        whileHover={{ scale: 1.03, x: 2 }}
-                        whileTap={{ scale: 0.96 }}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-mono bg-accent/10 border border-accent/30 text-accent font-medium hover:bg-accent/20 transition-colors"
-                      >
-                        {selectedSkill.project}
-                        <ArrowUpRight size={13} />
-                      </motion.a>
-                    </div>
-                  )}
+                  <span className="text-[10px] font-mono text-[#00F0FF] px-2 py-0.5 rounded bg-[#00F0FF]/10 border border-[#00F0FF]/30 flex-shrink-0">
+                    {cat.items.length} skills
+                  </span>
                 </div>
 
-                {/* Close Button */}
-                <motion.button
-                  onClick={() => setSelectedSkill(null)}
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="p-2 rounded-xl text-carbon-400 hover:text-carbon-700 dark:hover:text-carbon-200 hover:bg-carbon-200 dark:hover:bg-carbon-800 transition-colors cursor-pointer flex-shrink-0"
-                  aria-label="Close inspector"
-                >
-                  <X size={18} />
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {/* Enhanced Skill Cards without Percentage Bars */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {cat.items.map((skill) => {
+                    const label = SKILL_LABELS[skill.name] || 'Engineering Stack';
+                    const isSelected = selectedSkill?.name === skill.name;
 
-        {/* Credentials Section */}
-        {showCredentials && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-            className="mt-16 pt-12 border-t border-carbon-150 dark:border-carbon-800"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
-              <div>
-                <h3 className="text-xs font-mono text-accent uppercase tracking-widest flex items-center gap-2 mb-1">
-                  <Award size={14} className="text-accent" />
-                  Verified Certifications
-                </h3>
-                <p className="text-sm font-body text-carbon-600 dark:text-carbon-400">
-                  Official Google Career Certificates demonstrating artificial intelligence competencies.
-                </p>
-              </div>
-
-              <span className="text-xs font-mono text-carbon-600 dark:text-carbon-300 px-3 py-1 rounded-full bg-carbon-100 dark:bg-carbon-850 border border-carbon-200 dark:border-carbon-700 self-start sm:self-auto">
-                2 Official Credentials
-              </span>
-            </div>
-
-            {/* Credential Cards (2-Column Harmonized Grid) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
-              {credentials.map((cred, credIdx) => (
-                <motion.div
-                  key={cred.id}
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 300,
-                    damping: 26,
-                    delay: credIdx * 0.08,
-                  }}
-                  whileHover={{ y: -4 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setActiveCredential(cred)}
-                  className="group flex flex-col justify-between p-5 sm:p-7 rounded-2xl bg-carbon-100/50 dark:bg-carbon-900/60 border border-carbon-200 dark:border-carbon-800 hover:border-accent/40 dark:hover:border-accent/50 transition-all duration-300 cursor-pointer shadow-sm"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                          <Award size={20} className="text-accent" />
-                        </div>
+                    return (
+                      <div
+                        key={skill.name}
+                        onClick={() => {
+                          sound.playClick();
+                          setSelectedSkill(isSelected ? null : skill);
+                        }}
+                        className={`p-3 sm:p-3.5 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between group ${
+                          isSelected
+                            ? 'bg-[#00F0FF]/15 border-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.3)]'
+                            : 'bg-[#040813] border-[#00F0FF]/15 hover:border-[#00F0FF]/50 hover:bg-[#071122]'
+                        }`}
+                      >
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-accent font-semibold uppercase">
-                              {cred.issuer}
-                            </span>
-                            <span className="text-carbon-300 dark:text-carbon-600">·</span>
-                            <span className="text-xs font-mono text-carbon-500 dark:text-carbon-400">
-                              {cred.date}
+                          {/* Logo + Name + Status */}
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              {/* Real Logo Container */}
+                              <div className="w-8 h-8 rounded-lg bg-[#02050B] border border-white/10 flex items-center justify-center p-1.5 flex-shrink-0 shadow-inner group-hover:border-[#00F0FF]/40 transition-colors">
+                                <SkillLogo name={skill.name} className="w-5 h-5" />
+                              </div>
+
+                              <div className="min-w-0">
+                                <span className="font-mono text-xs font-bold text-white block truncate">
+                                  {skill.name}
+                                </span>
+                                <span className="text-[10px] font-mono text-slate-400 block truncate">
+                                  {label}
+                                </span>
+                              </div>
+                            </div>
+
+                            {skill.highlight && (
+                              <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#FF5500]/20 text-[#FF5500] font-bold border border-[#FF5500]/40 flex-shrink-0 ml-1">
+                                Core
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="text-[11px] font-body text-slate-300 line-clamp-2 leading-relaxed mt-1">
+                            {skill.context}
+                          </p>
+                        </div>
+
+                        {/* Project Badge */}
+                        {skill.project && (
+                          <div className="flex items-center justify-between pt-2 mt-2.5 border-t border-slate-800/60 text-[10px] font-mono">
+                            <span className="text-slate-500">Applied in:</span>
+                            <span className="text-[#00F0FF] font-semibold flex items-center gap-0.5 truncate max-w-[140px]">
+                              {skill.project}
+                              <ArrowUpRight size={10} className="flex-shrink-0" />
                             </span>
                           </div>
-                          <h4 className="font-display font-semibold text-lg text-carbon-950 dark:text-carbon-50 group-hover:text-accent transition-colors">
-                            {cred.title}
-                          </h4>
-                        </div>
+                        )}
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
-                      <span className="inline-flex items-center gap-1 text-xs font-mono px-2.5 py-0.5 rounded-full bg-carbon-200 dark:bg-carbon-800 text-carbon-600 dark:text-carbon-300 border border-carbon-300 dark:border-carbon-700">
-                        <CheckCircle2 size={11} className="text-accent" />
-                        Verified
+        {/* Google Cloud AI Certifications */}
+        {showCredentials && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+            className="space-y-6 pt-2"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-[#02050B] border border-white/10 flex items-center justify-center p-1.5 shadow-inner flex-shrink-0">
+                <SkillLogo name="Google" className="w-5 h-5" />
+              </div>
+              <h3 className="font-mono font-bold text-lg sm:text-2xl text-white tracking-wider">
+                // Google Cloud AI Certifications
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+              {credentials.map((cert) => (
+                <div
+                  key={cert.id}
+                  onClick={() => {
+                    sound.playPowerUp();
+                    setActiveCredential(cert);
+                  }}
+                  className="holo-card p-5 sm:p-7 cyber-card cursor-pointer hover:border-[#00FF9D] transition-all duration-300 group"
+                >
+                  <div className="hud-bracket-tl" />
+                  <div className="hud-bracket-tr" />
+                  <div className="hud-bracket-bl" />
+                  <div className="hud-bracket-br" />
+
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#03060E] border border-[#00FF9D]/40 flex items-center justify-center p-2 shadow-[0_0_12px_rgba(0,255,157,0.25)] flex-shrink-0">
+                      <SkillLogo name="Google" className="w-6 h-6" />
+                    </div>
+                    <div className="flex items-center gap-1 px-2.5 py-0.5 rounded bg-[#00FF9D]/10 border border-[#00FF9D]/30 text-[#00FF9D] text-[10px] font-mono font-bold">
+                      <ShieldCheck size={12} />
+                      <span>Verified Google Certificate</span>
+                    </div>
+                  </div>
+
+                  <h4 className="font-mono font-bold text-base sm:text-lg text-white group-hover:text-[#00FF9D] transition-colors">
+                    {cert.title}
+                  </h4>
+                  <p className="text-[11px] font-mono text-[#00F0FF] mt-0.5">
+                    {cert.organization} &middot; Issued {cert.date}
+                  </p>
+
+                  <p className="text-xs font-body text-slate-300 mt-2.5 leading-relaxed">
+                    {cert.summary}
+                  </p>
+
+                  <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-[#00F0FF]/15">
+                    {cert.topics.slice(0, 2).map((t, idx) => (
+                      <span key={idx} className="px-2 py-0.5 text-[10px] font-mono rounded bg-[#03060E] text-[#00F0FF] border border-[#00F0FF]/25">
+                        {t}
                       </span>
-                    </div>
-
-                    <p className="text-xs font-body text-carbon-600 dark:text-carbon-400 leading-relaxed mb-5">
-                      {cred.summary}
-                    </p>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {cred.topics.slice(0, 3).map((topic) => (
-                        <span
-                          key={topic}
-                          className="text-xs font-mono px-2.5 py-1 rounded-md bg-carbon-50 dark:bg-carbon-850 text-carbon-600 dark:text-carbon-300 border border-carbon-200 dark:border-carbon-750"
-                        >
-                          {topic}
-                        </span>
-                      ))}
-                    </div>
+                    ))}
+                    {cert.topics.length > 2 && (
+                      <span className="px-2 py-0.5 text-[10px] font-mono text-[#FF5500]">
+                        +{cert.topics.length - 2} more topics
+                      </span>
+                    )}
                   </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-carbon-200 dark:border-carbon-800 text-xs font-mono text-carbon-500 dark:text-carbon-400 group-hover:text-accent transition-colors">
-                    <span>View syllabus & details</span>
-                    <span className="transform group-hover:translate-x-1 transition-transform">
-                      →
-                    </span>
-                  </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </motion.div>
         )}
+      </div>
 
-        {/* Credential Details Modal Sheet */}
-        <AnimatePresence>
-          {activeCredential && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-              {/* Frosted Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setActiveCredential(null)}
-                className="fixed inset-0 bg-carbon-950/75 backdrop-blur-md"
-              />
+      {/* Credential Details Modal */}
+      <AnimatePresence>
+        {activeCredential && (
+          <div className="fixed inset-0 z-[95] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveCredential(null)}
+              className="fixed inset-0 bg-black/85 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+              className="relative w-full max-w-lg cyber-card p-5 sm:p-8 z-10 space-y-4 sm:space-y-5 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="hud-bracket-tl" />
+              <div className="hud-bracket-tr" />
+              <div className="hud-bracket-bl" />
+              <div className="hud-bracket-br" />
 
-              {/* Modal Card */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 25 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 25 }}
-                transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-                className="relative w-full max-w-lg rounded-3xl bg-carbon-50 dark:bg-carbon-900 border border-carbon-200 dark:border-carbon-750 p-7 sm:p-8 shadow-2xl z-10 overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-accent" />
-
-                {/* Close Button */}
-                <motion.button
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded bg-[#02050B] border border-white/10 flex items-center justify-center p-1 flex-shrink-0">
+                    <SkillLogo name="Google" className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs font-mono text-[#00FF9D] uppercase tracking-wider font-bold">
+                    // {activeCredential.badge}
+                  </span>
+                </div>
+                <button
                   onClick={() => setActiveCredential(null)}
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="absolute top-5 right-5 p-2 rounded-xl text-carbon-400 hover:text-carbon-800 dark:hover:text-carbon-200 hover:bg-carbon-200 dark:hover:bg-carbon-800 transition-colors cursor-pointer"
-                  aria-label="Close modal"
+                  className="p-1 rounded text-slate-400 hover:text-white cursor-pointer"
                 >
                   <X size={18} />
-                </motion.button>
+                </button>
+              </div>
 
-                {/* Modal Header */}
-                <div className="flex items-center gap-3.5 mb-6">
-                  <div className="w-12 h-12 rounded-2xl bg-accent/15 border border-accent/30 flex items-center justify-center flex-shrink-0">
-                    <Award size={24} className="text-accent" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-accent font-semibold uppercase">
-                        {activeCredential.issuer}
-                      </span>
-                      <span className="text-carbon-300 dark:text-carbon-600">·</span>
-                      <span className="text-xs font-mono text-carbon-400">
-                        {activeCredential.date}
-                      </span>
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-display font-bold text-carbon-950 dark:text-carbon-50">
-                      {activeCredential.title}
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Organization Strip */}
-                <div className="mb-6 p-3.5 rounded-xl bg-carbon-100 dark:bg-carbon-850 border border-carbon-200 dark:border-carbon-800 flex items-center justify-between text-xs font-mono">
-                  <span className="text-carbon-600 dark:text-carbon-300 flex items-center gap-2">
-                    <CheckCircle2 size={14} className="text-accent" />
-                    Issued by: {activeCredential.organization}
-                  </span>
-                  <span className="text-accent font-medium">Verified</span>
-                </div>
-
-                {/* Summary */}
-                <p className="text-sm font-body text-carbon-700 dark:text-carbon-300 leading-relaxed mb-6">
-                  {activeCredential.summary}
+              <div>
+                <h3 className="font-mono font-bold text-lg sm:text-xl text-white">
+                  {activeCredential.title}
+                </h3>
+                <p className="text-xs font-mono text-[#00F0FF] mt-1">
+                  Issued by {activeCredential.organization} &middot; {activeCredential.date}
                 </p>
+              </div>
 
-                {/* Topics Covered */}
-                <div className="mb-6">
-                  <h4 className="text-xs font-mono text-carbon-400 dark:text-carbon-500 uppercase tracking-widest mb-3">
-                    Curriculum & Core Competencies:
-                  </h4>
-                  <div className="space-y-2">
-                    {activeCredential.topics.map((topic) => (
-                      <div
-                        key={topic}
-                        className="flex items-start gap-2.5 p-3 rounded-xl bg-carbon-100/60 dark:bg-carbon-850/60 border border-carbon-200/80 dark:border-carbon-800/80 text-xs font-body text-carbon-800 dark:text-carbon-200"
-                      >
-                        <Check size={14} className="text-accent flex-shrink-0 mt-0.5" />
-                        <span>{topic}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <p className="text-xs sm:text-sm font-body text-slate-300 leading-relaxed">
+                {activeCredential.summary}
+              </p>
 
-                {/* Action */}
-                <div className="flex items-center justify-end pt-4 border-t border-carbon-200 dark:border-carbon-800">
-                  <motion.button
-                    onClick={() => setActiveCredential(null)}
-                    whileTap={{ scale: 0.96 }}
-                    className="px-5 py-2.5 rounded-xl text-xs font-mono bg-carbon-200 dark:bg-carbon-800 text-carbon-800 dark:text-carbon-200 hover:bg-carbon-300 dark:hover:bg-carbon-700 transition-colors cursor-pointer"
-                  >
-                    Close Sheet
-                  </motion.button>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
+              <div>
+                <h4 className="text-[11px] font-mono uppercase tracking-widest text-[#00F0FF] mb-2">
+                  // Key Curriculum Areas Covered
+                </h4>
+                <ul className="space-y-2">
+                  {activeCredential.topics.map((topic, i) => (
+                    <li key={i} className="flex items-center gap-2 text-xs font-mono text-slate-200">
+                      <CheckCircle2 size={13} className="text-[#00FF9D] flex-shrink-0" />
+                      <span>{topic}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="pt-3 border-t border-[#00F0FF]/20 flex justify-end">
+                <button
+                  onClick={() => setActiveCredential(null)}
+                  className="cyber-btn px-4 py-2 bg-[#00F0FF] text-black font-mono font-bold text-xs uppercase cursor-pointer"
+                >
+                  Close Details
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

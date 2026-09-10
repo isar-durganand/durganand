@@ -1,55 +1,101 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Github, X } from 'lucide-react';
+import { ExternalLink, Github, X, Sparkles, Layers, ShieldCheck, ArrowUpRight, CheckCircle2, Terminal, Cpu } from 'lucide-react';
 import { projects } from '../../data/projects';
 import type { Project } from '../../types/portfolio';
+import { sound } from '../../utils/audio';
 
 export function ProjectsSection() {
   const headerRef = useRef(null);
   const isInView = useInView(headerRef, { once: true, margin: '0px 0px -60px 0px' });
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [filter, setFilter] = useState<'all' | 'react' | 'python'>('all');
+
+  const filteredProjects = projects.filter((p) => {
+    if (filter === 'all') return true;
+    if (filter === 'react') return p.stack.includes('React');
+    if (filter === 'python') return p.stack.includes('Python');
+    return true;
+  });
 
   return (
-    <section id="work" className="py-20 sm:py-28 px-4 sm:px-6 scroll-mt-24">
-      <div className="max-w-5xl mx-auto">
-        {/* Section header */}
-        <motion.div
-          ref={headerRef}
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ type: 'spring', stiffness: 220, damping: 28 }}
-          className="mb-12 sm:mb-16"
-        >
-          <span className="text-xs font-mono text-accent uppercase tracking-widest mb-3 block">
-            // 01 · Featured Work
-          </span>
-          <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl tracking-display">
-            Things I've shipped.
-          </h2>
-          <p className="text-sm sm:text-base text-carbon-500 dark:text-carbon-400 mt-2 max-w-xl font-body">
-            Real products built with real-world users, production architectures, and end-to-end deployment.
-          </p>
-        </motion.div>
+    <section id="work" className="py-24 sm:py-32 px-4 sm:px-6 scroll-mt-24 relative">
+      <div className="max-w-6xl mx-auto">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 sm:mb-16">
+          <motion.div
+            ref={headerRef}
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]" />
+              <span className="text-xs font-mono text-[#00F0FF] uppercase tracking-widest font-bold">
+                // 01 &middot; Featured Projects
+              </span>
+            </div>
+            <h2 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight-display text-white">
+              Things I've Built.
+            </h2>
+            <p className="text-xs sm:text-sm md:text-base text-slate-300 max-w-xl font-body leading-relaxed">
+              Real-world products used by students and developers, built with client-side privacy architectures and large-scale data processing.
+            </p>
+          </motion.div>
 
-        {/* Project cards */}
-        <div className="space-y-14 sm:space-y-20">
-          {projects.map((project, i) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              index={i}
-              onSelect={() => setSelectedProject(project)}
-            />
-          ))}
+          {/* Filter Controls */}
+          <div className="flex items-center gap-1.5 p-1 rounded-lg bg-[#050A16] border border-[#00F0FF]/25 text-xs font-mono">
+            {[
+              { id: 'all', label: 'All Projects' },
+              { id: 'react', label: 'React & TS' },
+              { id: 'python', label: 'Python & Data' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  sound.playTelemetry(1800);
+                  setFilter(tab.id as 'all' | 'react' | 'python');
+                }}
+                className={`px-3 py-1.5 rounded transition-all cursor-pointer ${
+                  filter === tab.id
+                    ? 'bg-[#00F0FF]/20 text-[#00F0FF] font-bold border border-[#00F0FF]/40 shadow-[0_0_10px_rgba(0,240,255,0.2)]'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Projects Cards List */}
+        <div className="space-y-16 sm:space-y-20">
+          <AnimatePresence mode="popLayout">
+            {filteredProjects.map((project, i) => (
+              <SciFiProjectCard
+                key={project.id}
+                project={project}
+                index={i}
+                onSelect={() => {
+                  sound.playPowerUp();
+                  setSelectedProject(project);
+                }}
+              />
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Modal sheet */}
+      {/* Blueprint Architecture Modal */}
       <AnimatePresence>
         {selectedProject && (
-          <ProjectModal
+          <SciFiBlueprintModal
             project={selectedProject}
-            onClose={() => setSelectedProject(null)}
+            onClose={() => {
+              sound.playClick();
+              setSelectedProject(null);
+            }}
           />
         )}
       </AnimatePresence>
@@ -57,134 +103,197 @@ export function ProjectsSection() {
   );
 }
 
-/* ===== Project Card ===== */
-interface ProjectCardProps {
+/* ===== Sci-Fi Project Card ===== */
+interface CardProps {
   project: Project;
   index: number;
   onSelect: () => void;
 }
 
-function ProjectCard({ project, index, onSelect }: ProjectCardProps) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '0px 0px -60px 0px' });
+function SciFiProjectCard({ project, index, onSelect }: CardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '0px 0px -80px 0px' });
   const isEven = index % 2 === 0;
+  const isPrintify = project.id === 'printify-notes';
+
+  const [rotateX, setRotateX] = useState(0);
+  const [rotateY, setRotateY] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    setRotateX(((y - centerY) / centerY) * -4);
+    setRotateY(((x - centerX) / centerX) * 4);
+  };
 
   return (
     <motion.article
       ref={ref}
-      initial={{ opacity: 0, y: 40 }}
+      layout
+      initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
+      exit={{ opacity: 0, scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 180, damping: 26, delay: 0.1 }}
-      className={`grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center ${
-        isEven ? '' : 'lg:direction-rtl'
+      className={`grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 items-center ${
+        isEven ? '' : 'lg:grid-flow-dense'
       }`}
     >
-      {/* Screenshot in browser frame */}
+      {/* Visual / Screenshot Chassis (7 cols) */}
       <motion.div
-        className={`lg:col-span-7 ${isEven ? '' : 'lg:col-start-6 lg:row-start-1'}`}
-        data-cursor="View"
+        className={`lg:col-span-7 ${isEven ? '' : 'lg:col-start-6'}`}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setRotateX(0);
+          setRotateY(0);
+        }}
         onClick={onSelect}
-        whileHover={{ scale: 1.015 }}
-        whileTap={{ scale: 0.98 }}
-        style={{ cursor: 'pointer' }}
+        style={{
+          perspective: 1000,
+          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+          transition: isHovered ? 'transform 0.1s ease-out' : 'transform 0.5s ease-out',
+          cursor: 'pointer',
+        }}
+        whileTap={{ scale: 0.985 }}
+        data-cursor="VIEW"
       >
-        <div className="browser-frame bg-carbon-100 dark:bg-carbon-850 border border-carbon-200 dark:border-carbon-750 shadow-md">
-          {/* Browser chrome bar */}
-          <div className="browser-frame-bar bg-carbon-100 dark:bg-carbon-800 border-b border-carbon-200 dark:border-carbon-750">
-            <div className="flex gap-1.5">
-              <div className="browser-dot bg-red-400/60" />
-              <div className="browser-dot bg-yellow-400/60" />
-              <div className="browser-dot bg-green-400/60" />
+        <div className={`relative p-1 ${isPrintify ? 'cyber-card-orange' : 'cyber-card'} group shadow-2xl`}>
+          <div className="hud-bracket-tl" />
+          <div className="hud-bracket-tr" />
+          <div className="hud-bracket-bl" />
+          <div className="hud-bracket-br" />
+
+          {/* Top Chassis Bar */}
+          <div className="flex items-center justify-between px-4 py-2.5 bg-[#02050B] border-b border-[#00F0FF]/20 text-[11px] font-mono">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${isPrintify ? 'bg-[#FF5500] shadow-[0_0_8px_#FF5500]' : 'bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]'}`} />
+              <span className="text-white font-bold tracking-wider uppercase">
+                {project.title}
+              </span>
             </div>
-            <div className="flex-1 mx-3 sm:mx-4">
-              <div className="bg-carbon-200 dark:bg-carbon-700 rounded-md h-5 sm:h-6 flex items-center px-2.5 max-w-[160px] sm:max-w-xs">
-                <span className="text-[10px] font-mono text-carbon-500 dark:text-carbon-400 truncate">
-                  {project.liveUrl.replace('https://', '').replace('http://', '')}
-                </span>
-              </div>
+
+            <div className="flex items-center gap-1 text-[#00FF9D]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00FF9D] animate-pulse" />
+              <span className="text-[10px] font-bold">LIVE IN PRODUCTION</span>
             </div>
           </div>
-          {/* Screenshot */}
-          <div className="overflow-hidden">
-            <motion.img
+
+          {/* Screenshot Display */}
+          <div className="relative overflow-hidden aspect-[16/10] bg-[#010307] scanlines">
+            <img
               src={project.screenshot}
-              alt={`${project.title} — Live application screenshot`}
-              className="w-full object-cover object-top"
-              style={{ aspectRatio: '16/10' }}
+              alt={project.title}
+              className="w-full h-full object-cover object-top filter contrast-[1.05] group-hover:scale-105 transition-transform duration-700"
               loading="lazy"
-              whileHover={{ scale: 1.03 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 25 }}
             />
+            <div className="absolute inset-0 bg-[#00F0FF]/5 pointer-events-none" />
+
+            <div className="absolute bottom-3 right-3 px-3 py-1.5 rounded bg-black/80 backdrop-blur-md border border-[#00F0FF]/40 text-[#00F0FF] text-[10px] font-mono uppercase tracking-widest flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span>View Details</span>
+              <ArrowUpRight size={12} />
+            </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Project info */}
-      <div className={`lg:col-span-5 space-y-3 sm:space-y-4 ${isEven ? '' : 'lg:col-start-1 lg:row-start-1'}`}>
-        <h3 className="font-display font-bold text-2xl sm:text-3xl tracking-tight">
-          {project.title}
-        </h3>
-        <p className="text-xs sm:text-sm font-body text-accent font-medium">{project.tagline}</p>
-        <p className="text-xs sm:text-sm font-body text-carbon-600 dark:text-carbon-300 leading-relaxed">
+      {/* Metadata & Narrative (5 cols) */}
+      <div className={`lg:col-span-5 space-y-4 ${isEven ? '' : 'lg:col-start-1 lg:row-start-1'}`}>
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-mono text-[#00F0FF] uppercase tracking-widest font-bold">
+            <Cpu size={12} />
+            <span>PROJECT {index + 1 < 10 ? `0${index + 1}` : index + 1}</span>
+          </div>
+          <h3 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-white tracking-tight">
+            {project.title}
+          </h3>
+          <p className="text-xs sm:text-sm font-mono text-[#FF5500] font-semibold">{project.tagline}</p>
+        </div>
+
+        <p className="text-xs sm:text-sm font-body text-slate-300 leading-relaxed">
           {project.description}
         </p>
 
-        {/* Stack tags */}
-        <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-1 sm:pt-2">
-          {project.stack.map((tech) => (
+        {/* Feature Highlights */}
+        <div className="space-y-2 py-1">
+          {project.highlights.map((h, idx) => (
+            <div key={idx} className="flex items-start gap-2 text-xs font-mono text-slate-200">
+              <span className="text-[#00F0FF] mt-0.5">&gt;&gt;</span>
+              <span>{h}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Tech Stack Badges */}
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {project.stack.map((t) => (
             <span
-              key={tech}
-              className="px-2.5 py-1 text-xs font-mono bg-carbon-100 dark:bg-carbon-800 border border-carbon-200 dark:border-carbon-750 rounded-lg text-carbon-600 dark:text-carbon-300"
+              key={t}
+              className="px-2.5 py-1 text-[11px] font-mono rounded bg-[#060D1A] text-[#00F0FF] border border-[#00F0FF]/30"
             >
-              {tech}
+              {t}
             </span>
           ))}
         </div>
 
-        {/* Links */}
-        <div className="flex flex-wrap items-center gap-3 pt-3 sm:pt-4">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-3 pt-2">
           <motion.a
             href={project.liveUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+              sound.playTelemetry(2000);
+            }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
-            whileHover={{ scale: 1.03 }}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium font-body border border-accent bg-accent/10 text-accent rounded-xl hover:bg-accent hover:text-white transition-colors cursor-pointer"
+            className="cyber-btn inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-mono font-bold bg-[#00F0FF] text-black shadow-[0_0_15px_rgba(0,240,255,0.4)] cursor-pointer"
           >
-            <ExternalLink size={14} />
-            <span>Live Site</span>
+            <span>LIVE WEBSITE</span>
+            <ExternalLink size={13} />
           </motion.a>
+
           <motion.a
             href={project.repoUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+              sound.playClick();
+            }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
-            whileHover={{ scale: 1.03 }}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium font-body border border-carbon-200 dark:border-carbon-750 rounded-xl text-carbon-600 dark:text-carbon-300 hover:border-accent hover:text-accent transition-colors cursor-pointer"
+            className="cyber-btn inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-mono font-bold bg-[#071120] hover:bg-[#0C1A30] border border-[#00F0FF]/30 text-slate-200 hover:text-[#00F0FF] cursor-pointer"
           >
-            <Github size={14} />
-            <span>Source Code</span>
+            <Github size={13} />
+            <span>SOURCE CODE</span>
           </motion.a>
-          <motion.button
+
+          <button
             onClick={onSelect}
-            whileTap={{ scale: 0.96 }}
-            className="text-xs font-mono text-carbon-400 hover:text-carbon-700 dark:hover:text-carbon-200 transition-colors cursor-pointer ml-auto sm:ml-0"
+            className="text-xs font-mono text-slate-400 hover:text-[#00F0FF] transition-colors ml-auto sm:ml-0 cursor-pointer"
           >
-            Details →
-          </motion.button>
+            [ Details &gt;&gt; ]
+          </button>
         </div>
       </div>
     </motion.article>
   );
 }
 
-/* ===== Project Modal (iOS Sheet Style) ===== */
-interface ProjectModalProps {
+/* ===== Project Details Modal ===== */
+interface ModalProps {
   project: Project;
   onClose: () => void;
 }
 
-function ProjectModal({ project, onClose }: ProjectModalProps) {
+function SciFiBlueprintModal({ project, onClose }: ModalProps) {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -198,118 +307,103 @@ function ProjectModal({ project, onClose }: ProjectModalProps) {
   }, [onClose]);
 
   return (
-    <>
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-[95] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-carbon-950/75 backdrop-blur-md z-50"
+        className="fixed inset-0 bg-black/85 backdrop-blur-md"
       />
 
-      {/* Sheet */}
       <motion.div
-        initial={{ opacity: 0, y: 60, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 40, scale: 0.96 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-        className="fixed inset-x-3 bottom-3 top-16 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:max-w-2xl sm:w-full z-50 bg-carbon-50 dark:bg-carbon-900 border border-carbon-200 dark:border-carbon-750 rounded-2xl sm:rounded-3xl overflow-y-auto max-h-[88vh] shadow-2xl"
+        initial={{ opacity: 0, scale: 0.94, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.94, y: 30 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+        className="relative w-full max-w-3xl rounded-xl bg-[#050A16] border border-[#00F0FF]/40 shadow-[0_0_50px_rgba(0,240,255,0.25)] overflow-hidden z-10 max-h-[90vh] flex flex-col"
       >
-        {/* Close button */}
-        <div className="sticky top-0 flex justify-end p-3 sm:p-4 bg-carbon-50/90 dark:bg-carbon-900/90 frosted-surface z-10 border-b border-carbon-200/50 dark:border-carbon-800/50">
-          <motion.button
+        <div className="hud-bracket-tl" />
+        <div className="hud-bracket-tr" />
+        <div className="hud-bracket-bl" />
+        <div className="hud-bracket-br" />
+
+        <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#00F0FF]/25 bg-[#03060E]">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-ping" />
+            <span className="text-xs font-mono text-[#00F0FF] font-bold uppercase tracking-widest">
+              [ PROJECT ARCHITECTURE &amp; DETAILS ]
+            </span>
+          </div>
+          <button
             onClick={onClose}
-            whileTap={{ scale: 0.92 }}
-            className="p-2 rounded-xl hover:bg-carbon-200 dark:hover:bg-carbon-800 text-carbon-400 hover:text-carbon-950 dark:hover:text-carbon-50 transition-colors cursor-pointer"
-            aria-label="Close modal"
+            className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <X size={20} />
-          </motion.button>
+            <X size={18} />
+          </button>
         </div>
 
-        <div className="px-4 sm:px-8 pb-8 space-y-5 sm:space-y-6">
-          {/* Title */}
+        <div className="p-6 sm:p-8 overflow-y-auto space-y-6 scanlines">
           <div>
-            <h3 className="font-display font-bold text-2xl sm:text-3xl tracking-tight">
+            <h3 className="font-display font-black text-2xl sm:text-3xl text-white">
               {project.title}
             </h3>
-            <p className="text-xs sm:text-sm font-body text-accent font-medium mt-1">{project.tagline}</p>
+            <p className="text-xs font-mono text-[#FF5500] font-bold mt-1">{project.tagline}</p>
           </div>
 
-          {/* Screenshot */}
-          <div className="browser-frame bg-carbon-100 dark:bg-carbon-850 border border-carbon-200 dark:border-carbon-750 rounded-xl overflow-hidden">
-            <div className="browser-frame-bar bg-carbon-100 dark:bg-carbon-800 border-b border-carbon-200 dark:border-carbon-750">
-              <div className="flex gap-1.5">
-                <div className="browser-dot bg-red-400/60" />
-                <div className="browser-dot bg-yellow-400/60" />
-                <div className="browser-dot bg-green-400/60" />
-              </div>
-            </div>
+          <div className="rounded border border-[#00F0FF]/30 overflow-hidden bg-black shadow-xl">
             <img
               src={project.screenshot}
-              alt={`${project.title} screenshot`}
-              className="w-full"
+              alt={project.title}
+              className="w-full object-cover object-top max-h-72"
             />
           </div>
 
-          {/* Description */}
-          <p className="text-xs sm:text-sm font-body text-carbon-600 dark:text-carbon-300 leading-relaxed">
-            {project.description}
-          </p>
-
-          {/* Highlights */}
-          <div>
-            <h4 className="font-mono font-semibold text-xs mb-3 uppercase tracking-wider text-carbon-400">
-              Key highlights
+          <div className="space-y-2">
+            <h4 className="text-[11px] font-mono uppercase tracking-widest text-[#00F0FF]">
+              // Overview
             </h4>
-            <ul className="space-y-2">
-              {project.highlights.map((h, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs sm:text-sm font-body text-carbon-700 dark:text-carbon-200">
-                  <span className="text-accent mt-0.5">→</span>
-                  {h}
-                </li>
+            <p className="text-xs sm:text-sm font-body text-slate-300 leading-relaxed">
+              {project.description}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-[11px] font-mono uppercase tracking-widest text-[#00F0FF]">
+              // Key Engineering Decisions
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {project.highlights.map((item, i) => (
+                <div key={i} className="p-3 rounded bg-[#071120] border border-[#00F0FF]/20 flex items-start gap-2 font-mono text-xs text-slate-200">
+                  <ShieldCheck size={14} className="text-[#00FF9D] flex-shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
 
-          {/* Stack */}
-          <div className="flex flex-wrap gap-2">
-            {project.stack.map((tech) => (
-              <span
-                key={tech}
-                className="px-2.5 py-1 text-xs font-mono bg-carbon-100 dark:bg-carbon-800 border border-carbon-200 dark:border-carbon-750 rounded-lg text-carbon-600 dark:text-carbon-300"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
-
-          {/* Action Links */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <motion.a
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[#00F0FF]/20">
+            <a
               href={project.liveUrl}
               target="_blank"
               rel="noopener noreferrer"
-              whileTap={{ scale: 0.96 }}
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent text-white font-medium text-sm rounded-xl hover:bg-accent-hover transition-colors text-center"
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#00F0FF] text-black font-mono font-bold text-xs uppercase tracking-wider transition-all text-center"
             >
-              <ExternalLink size={16} />
-              View Live Application
-            </motion.a>
-            <motion.a
+              <ExternalLink size={14} />
+              <span>Open Live Website</span>
+            </a>
+            <a
               href={project.repoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              whileTap={{ scale: 0.96 }}
-              className="flex-1 flex items-center justify-center gap-2 py-3 border border-carbon-200 dark:border-carbon-700 font-medium text-sm rounded-xl text-carbon-600 dark:text-carbon-300 hover:border-accent hover:text-accent transition-colors text-center"
+              className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#071120] border border-[#00F0FF]/40 text-[#00F0FF] font-mono font-bold text-xs uppercase tracking-wider transition-all text-center"
             >
-              <Github size={16} />
-              GitHub Repository
-            </motion.a>
+              <Github size={14} />
+              <span>View Source Code</span>
+            </a>
           </div>
         </div>
       </motion.div>
-    </>
+    </div>
   );
 }

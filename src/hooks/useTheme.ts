@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 
 type Theme = 'dark' | 'light';
 
@@ -13,14 +13,16 @@ export function useTheme() {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      document.body.style.backgroundColor = '#0A0A0B';
-      document.body.style.color = '#FAFAF8';
-    } else {
+    // Always default and enforce dark mode styling
+    root.classList.add('dark');
+    if (theme === 'light') {
       root.classList.remove('dark');
-      document.body.style.backgroundColor = '#FAFAF8';
-      document.body.style.color = '#09090B';
+      document.body.style.backgroundColor = '#0B0F19';
+      document.body.style.color = '#F1F5F9';
+    } else {
+      root.classList.add('dark');
+      document.body.style.backgroundColor = '#030509';
+      document.body.style.color = '#F8FAFC';
     }
     localStorage.setItem('theme', theme);
   }, [theme]);
